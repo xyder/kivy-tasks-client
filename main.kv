@@ -1,0 +1,48 @@
+<CListItemButton@ListItemButton>:
+    halign: 'center'
+    markup: True
+    text_size: (self.width, None)
+    height: 50
+    size_hint_y: None
+
+    GridLayout:
+        cols: 2
+        rows: 2
+        data: self.parent.data
+
+        pos: self.parent.pos
+        size: self.parent.size
+        orientation: 'horizontal'
+
+        Label:
+            text: self.parent.data['title']
+            font_size: "20dp"
+            text_size: (self.width, None)
+            halign: 'left'
+
+        Label:
+            text: self.parent.data['status']
+            color: (0.0, 0.5, 1.0, 1.0)
+            text_size: (self.width, None)
+            halign: 'right'
+
+        Label:
+            text: str(self.parent.data['created'])
+            text_size: (self.width, None)
+            halign: 'left'
+
+        Label:
+            text: str(self.parent.data['due'])
+            text_size: (self.width, None)
+            halign: 'right'
+
+<CCompositeListItem@CompositeListItem>:
+    height: 50
+    size_hint_y: None
+
+<CListView@ListVIew>:
+
+GridLayout:
+    cols: 1
+    rows: 1
+    CListView:
