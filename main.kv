@@ -1,48 +1,93 @@
+#:import ListAdapter kivy.adapters.listadapter.ListAdapter
+
+<CLabel@Label>:
+    markup: True
+    text_size: (self.width, None)
+
 <CListItemButton@ListItemButton>:
     halign: 'center'
     markup: True
+    deselected_color: .7, .7, 1, 1
     text_size: (self.width, None)
     height: 50
     size_hint_y: None
+    popup_edit: root.data['root_list'].popup_edit_item
+
+    on_release:
+        self.popup_edit.data = root.data;
+        self.popup_edit.title = 'Edit task.'
+        self.popup_edit.open()
 
     GridLayout:
+        # set grid size
         cols: 2
         rows: 2
-        data: self.parent.data
 
-        pos: self.parent.pos
-        size: self.parent.size
+        pos: (self.parent.x + 10, self.parent.y)
+        size: (self.parent.width - 20, self.parent.height)
         orientation: 'horizontal'
 
-        Label:
-            text: self.parent.data['title']
+        # show title (up-left)
+        CLabel:
+            text: root.data['title']
             font_size: "20dp"
-            text_size: (self.width, None)
             halign: 'left'
 
-        Label:
-            text: self.parent.data['status']
+        # show status (up-right)
+        CLabel:
+            text: root.data['status']
             color: (0.0, 0.5, 1.0, 1.0)
-            text_size: (self.width, None)
             halign: 'right'
 
-        Label:
-            text: str(self.parent.data['created'])
-            text_size: (self.width, None)
+        # show created date (bottom-left)
+        CLabel:
+            text: str(root.data['created'])
             halign: 'left'
 
-        Label:
-            text: str(self.parent.data['due'])
-            text_size: (self.width, None)
+        # show due date (bottom-right)
+        CLabel:
+            text: str(root.data['due'])
             halign: 'right'
 
-<CCompositeListItem@CompositeListItem>:
-    height: 50
-    size_hint_y: None
+<CListView@ListView>:
+    adapter:
+        ListAdapter(
+        data=self.data,
+        args_converter=self.list_item_args_converter,
+        selection_mode='none',
+        allow_empty_selection=True,
+        cls=self.item_class)
 
-<CListView@ListVIew>:
 
 GridLayout:
+    id: gl
     cols: 1
     rows: 1
     CListView:
+        popup_edit_item: popup_edit_item.__self__
+
+    CPopup:
+        id: popup_edit_item
+        on_parent: if self.parent == gl: gl.remove_widget(self)
+        title: "Add/Edit task: "
+        content: popup_content
+        GridLayout:
+            id: popup_content
+            rows: 2
+            cols: 1
+            Label:
+                text: str(popup_edit_item.data)
+            GridLayout:
+                size_hint: None, None
+                width: self.parent.width
+                height: 30
+                rows: 1
+                cols: 2
+                Button:
+                    text: "Save"
+                    background_color: 0.3, 1, 0.3, 1
+
+                Button:
+                    text: "Cancel"
+                    background_color: 1.5, 0.3, 0.3, 1
+                    on_release: popup_edit_item.dismiss()

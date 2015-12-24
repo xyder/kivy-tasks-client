@@ -1,8 +1,9 @@
 import datetime
-from kivy.adapters.listadapter import ListAdapter
+
 from kivy.app import App
 from kivy.properties import DictProperty
-from kivy.uix.listview import ListView, ListItemButton, CompositeListItem
+from kivy.uix.listview import ListView, ListItemButton
+from kivy.uix.popup import Popup
 
 data = {
     "tasks": [
@@ -35,29 +36,31 @@ class CListItemButton(ListItemButton):
     data = DictProperty()
 
 
+class CPopup(Popup):
+    data = DictProperty()
+
+
 class CListView(ListView):
 
     @staticmethod
     def list_item_args_converter(row_index, record):
         return {
             'data': {
-                'title': '%s. %s' % (row_index, record['title']),
-                'status': record['status'].upper(),
+                'title': '[b]%s. %s[/b]' % (row_index+1, record['title']),
+                'status': '[b]%s[/b]' % record['status'].upper(),
                 'created': datetime.datetime.fromtimestamp(record['created']),
-                'due': datetime.datetime.fromtimestamp(record['due'])
+                'due': datetime.datetime.fromtimestamp(record['due']),
+                'root_list': record['root_list']
             }
         }
 
     def __init__(self, **kwargs):
-        super(CListView, self).__init__(**kwargs)
+        for item in data['tasks']:
+            item['root_list'] = self
 
-        self.adapter = ListAdapter(
-            data=data['tasks'],
-            args_converter=CListView.list_item_args_converter,
-            selection_mode='none',
-            allow_empty_selection=True,
-            cls=CListItemButton
-        )
+        self.data = data['tasks']
+        self.item_class = CListItemButton
+        super().__init__(**kwargs)
 
 
 class MainApp(App):
