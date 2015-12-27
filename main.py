@@ -1,4 +1,5 @@
 import datetime
+from kivy.adapters.listadapter import ListAdapter
 
 from kivy.app import App
 from kivy.properties import DictProperty
@@ -46,8 +47,10 @@ class CListView(ListView):
     def list_item_args_converter(row_index, record):
         return {
             'data': {
-                'title': '[b]%s. %s[/b]' % (row_index+1, record['title']),
-                'status': '[b]%s[/b]' % record['status'].upper(),
+                'title': record['title'],
+                'row': row_index,
+                'status': record['status'],
+                'body': record['body'],
                 'created': datetime.datetime.fromtimestamp(record['created']),
                 'due': datetime.datetime.fromtimestamp(record['due']),
                 'root_list': record['root_list']
@@ -55,12 +58,18 @@ class CListView(ListView):
         }
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
         for item in data['tasks']:
             item['root_list'] = self
 
         self.data = data['tasks']
-        self.item_class = CListItemButton
-        super().__init__(**kwargs)
+        self.adapter = ListAdapter(
+            data=self.data,
+            args_converter=self.list_item_args_converter,
+            selection_mode='none',
+            allow_empty_selection=True,
+            cls=CListItemButton)
 
 
 class MainApp(App):

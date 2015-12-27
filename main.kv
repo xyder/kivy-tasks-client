@@ -14,7 +14,7 @@
     popup_edit: root.data['root_list'].popup_edit_item
 
     on_release:
-        self.popup_edit.data = root.data;
+        self.popup_edit.data = root.data
         self.popup_edit.title = 'Edit task.'
         self.popup_edit.open()
 
@@ -29,13 +29,13 @@
 
         # show title (up-left)
         CLabel:
-            text: root.data['title']
+            text: '%s. [b]%s[/b]' % (root.data['row'], root.data['title'])
             font_size: "20dp"
             halign: 'left'
 
         # show status (up-right)
         CLabel:
-            text: root.data['status']
+            text: '[b]%s[/b]' % root.data['status'].upper()
             color: (0.0, 0.5, 1.0, 1.0)
             halign: 'right'
 
@@ -49,15 +49,21 @@
             text: str(root.data['due'])
             halign: 'right'
 
-<CListView@ListView>:
-    adapter:
-        ListAdapter(
-        data=self.data,
-        args_converter=self.list_item_args_converter,
-        selection_mode='none',
-        allow_empty_selection=True,
-        cls=self.item_class)
+<LabeledInput@GridLayout>:
+    cols: 2
 
+    label_text: ''
+    input_text: ''
+
+    size_hint_y: None
+    height: 35
+
+    Label:
+        text: root.label_text
+
+    TextInput:
+        text: root.input_text
+        multiline: False
 
 GridLayout:
     id: gl
@@ -75,8 +81,32 @@ GridLayout:
             id: popup_content
             rows: 2
             cols: 1
-            Label:
-                text: str(popup_edit_item.data)
+
+            GridLayout:
+                cols: 1
+                get_data: lambda k: '' if k not in popup_edit_item.data else str(popup_edit_item.data[k])
+
+                LabeledInput:
+                    label_text: 'Title:'
+                    input_text: self.parent.get_data('title')
+
+                LabeledInput:
+                    label_text: 'Description:'
+                    input_text: self.parent.get_data('body')
+
+                LabeledInput:
+                    label_text: 'Created date:'
+                    input_text: self.parent.get_data('created')
+
+                LabeledInput:
+                    label_text: 'Due date:'
+                    input_text: self.parent.get_data('due')
+
+                LabeledInput:
+                    label_text: 'Status:'
+                    input_text: self.parent.get_data('status')
+
+
             GridLayout:
                 size_hint: None, None
                 width: self.parent.width
