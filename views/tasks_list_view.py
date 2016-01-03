@@ -1,5 +1,6 @@
 import datetime
 from kivy.adapters.listadapter import ListAdapter
+from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.listview import ListView, ListItemButton
@@ -22,6 +23,11 @@ class CustomListItemButton(ListItemButton):
             print('saving data: %s', popup.result)
 
     @staticmethod
+    def on_delete(instance):
+        # delete data
+        print('deleting data: %s' % instance.data)
+
+    @staticmethod
     def create_label(**kwargs):
         ret = Label(
             text=kwargs.get('text', ''),
@@ -37,7 +43,7 @@ class CustomListItemButton(ListItemButton):
 
     def build_labels(self):
         ret = GridLayout(
-            cols=2,
+            cols=3,
             rows=2,
             orientation='horizontal',
             x=10  # manual override for when 'pos' binding doesn't work
@@ -63,8 +69,19 @@ class CustomListItemButton(ListItemButton):
             halign='right',
         )
 
+        ret.delete_button = Button(
+            markup=True,
+            text='[b][color=220000]X[/color][/b]',
+            background_color=(0, 0, 0, 0),
+            size_hint_x=None,
+            width=30
+        )
+        ret.delete_button.data = self.data
+        ret.delete_button.bind(on_press=self.on_delete)
+
         ret.add_widget(ret.title_label)
         ret.add_widget(ret.status_label)
+        ret.add_widget(ret.delete_button)
         ret.add_widget(ret.created_label)
         ret.add_widget(ret.due_label)
 
@@ -87,7 +104,7 @@ class CustomListItemButton(ListItemButton):
         # note: 'pos' binding is not triggered on the last item in a list.
         self.bind(pos=lambda s, w: s.labels_container.setter('pos')(s, (w[0] + 10, w[1])))
 
-        self.bind(size=lambda s, w: s.labels_container.setter('size')(s, (w[0] - 20, w[1])))
+        self.bind(size=lambda s, w: s.labels_container.setter('size')(s, (w[0] - 10, w[1])))
 
 
 class TasksListView(ListView):
