@@ -13,7 +13,7 @@ class LabeledInput(GridLayout):
         self.input_text = kwargs.get('input_text', '')
         self.height = kwargs.get('height', 70)
 
-        super().__init__(
+        super(LabeledInput, self).__init__(
             cols=1,
             size_hint_y=None,
             **kwargs)
@@ -108,7 +108,7 @@ class AddEditPopup(Popup):
         return ret
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(AddEditPopup, self).__init__(**kwargs)
 
         self.content = kwargs.get('content', GridLayout(
             cols=1

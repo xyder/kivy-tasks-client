@@ -1,0 +1,9 @@
+numpy
+cython
+# hg+http://bitbucket.org/pygame/pygame
+git+https://github.com/kivy/buildozer.git@master
+git+https://github.com/kivy/plyer.git@master
+pygments
+docutils
+requests
+kivy

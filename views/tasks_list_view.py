@@ -95,7 +95,7 @@ class CustomListItemButton(ListItemButton):
         self.height = 50
         self.size_hint_y = None
 
-        super().__init__(**kwargs)
+        super(CustomListItemButton, self).__init__(**kwargs)
         self.labels_container = self.build_labels()
         self.add_widget(self.labels_container)
 
@@ -124,7 +124,7 @@ class TasksListView(ListView):
     def __init__(self, **kwargs):
         self.data = kwargs.get('data', [])
 
-        super().__init__(**kwargs)
+        super(TasksListView, self).__init__(**kwargs)
         self.adapter = ListAdapter(
             data=self.data,
             args_converter=self.list_item_args_converter,

@@ -11,13 +11,15 @@ sudo apt-get update
 sudo apt-get install python3-kivy python-kivy-examples
 
 # install some required dependencies for pygame and cython
+sudo apt-get build-dep python-pygame
+
 sudo apt-get install -y \
-    python3-pip \
+    python-pip \
     build-essential \
     mercurial \
     git \
-    python3 \
-    python3-dev \
+    python \
+    python-dev \
     ffmpeg \
     libsdl-image1.2-dev \
     libsdl-mixer1.2-dev \
@@ -28,19 +30,11 @@ sudo apt-get install -y \
     libswscale-dev \
     libavformat-dev \
     libavcodec-dev \
-    zlib1g-dev
+    zlib1g-dev \
+    python-pygame
 
-# install some more dependencies
-pip3 install numpy
-pip3 install Cython==0.21.2
-pip3 install hg+http://bitbucket.org/pygame/pygame
-pip3 install git+https://github.com/kivy/buildozer.git@master
-pip3 install git+https://github.com/kivy/plyer.git@master
-pip3 install -U pygments docutils
-pip3 install requests
-
-# and finally, install kivy
-pip3 install kivy
+# install python packages
+pip install -r requirements.txt
 ```
 
 ### Install Kivy Garden and widgets:
@@ -75,3 +69,8 @@ return BytesIO(data)
 # note: for the circular datetime picker to work with python 3 you need to
 # replace all occurences of xrange with range.
 ```
+
+### Buildozer:
+- To use buildozer run it from ```~/.local/bin/buildozer``` or install with ```sudo pip install buildozer``` to generate the buildozer script at global level.
+- To target Android install the requirements by following [this guide](https://buildozer.readthedocs.org/en/latest/installation.html).
+`
