@@ -3,33 +3,8 @@ from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 
 import config
+from api_manager import ApiManager, get_json
 from views import TasksListView, AddEditPopup
-
-data = {
-    "tasks": [
-        {
-            "status": "done",
-            "title": "Buy groceries.",
-            "body": "Milk, Coffee, Chocolate.",
-            "created": 1450182780,
-            "due": 1450187272
-        },
-        {
-            "status": "open",
-            "title": "Go to work.",
-            "body": "Remember to bring suitcase.",
-            "created": 1450191352,
-            "due": 1450191412
-        },
-        {
-            "status": "ongoing",
-            "title": "Implement high-tech API",
-            "body": "Plug-and-play cross-universe.",
-            "created": 1450263412,
-            "due": 1450429200
-        },
-    ]
-}
 
 
 class MainApp(App):
@@ -38,15 +13,24 @@ class MainApp(App):
 
     @staticmethod
     def on_add_new_task(instance):
-        AddEditPopup(
+        aep = AddEditPopup(
             title='Add Task:',
-            leave_callback=MainApp.on_add_popup_leave
-        ).open()
+            leave_callback=MainApp.on_add_popup_leave,
+        )
+        aep.context = instance.context
+        aep.open()
 
     @staticmethod
     def on_add_popup_leave(popup):
         # save data
-        print('saving data: %s', popup.result)
+        if popup.accepted:
+            popup.context['api_manager'].add_action(popup.result)
+            popup.context['task_list'].update()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.api_manager = ApiManager(config.server_address,
+                                      get_json(config.server_address + config.api_url_start)['data'][0])
 
     def build(self):
         # required if kv file is used
@@ -57,13 +41,19 @@ class MainApp(App):
             cols=1
         )
 
-        self.task_list = TasksListView(data=data['tasks'])
+        self.task_list = TasksListView(api_manager=self.api_manager)
+
         self.add_button = Button(
             text='Add task..',
             height=30,
             background_color=(0.3, 1, 0.3, 1),
             size_hint_y=None
         )
+
+        self.add_button.context = {
+            'api_manager': self.api_manager,
+            'task_list': self.task_list
+        }
 
         self.add_button.bind(on_press=self.on_add_new_task)
 
@@ -74,3 +64,5 @@ class MainApp(App):
 
 if __name__ == '__main__':
     MainApp().run()
+
+# todo: edit form and check all

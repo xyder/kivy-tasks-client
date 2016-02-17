@@ -4,28 +4,37 @@ from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.listview import ListView, ListItemButton
+
+import config
+from api_manager import Item
 from views import AddEditPopup
+
+
+def convert_time(timestamp):
+    return str(datetime.datetime.fromtimestamp(int(timestamp)))
 
 
 class CustomListItemButton(ListItemButton):
 
     def on_release(self):
-        AddEditPopup(
-            data=self.data,
+        aep = AddEditPopup(
+            item=self.item,
             title='Edit Task:',
             leave_callback=self.on_popup_leave
-        ).open()
+        )
+        aep.parent_list = self.parent_list
+        aep.open()
 
     @staticmethod
     def on_popup_leave(popup):
-        if popup.accepted and popup.changed:
-            # save data
-            print('saving data: %s', popup.result)
+        if popup.accepted:
+            popup.item.update_action(popup.result)
+            popup.parent_list.update()
 
     @staticmethod
     def on_delete(instance):
-        # delete data
-        print('deleting data: %s' % instance.data)
+        instance.item.delete_action()
+        instance.parent_list.update()
 
     @staticmethod
     def create_label(**kwargs):
@@ -50,22 +59,22 @@ class CustomListItemButton(ListItemButton):
         )
 
         ret.title_label = CustomListItemButton.create_label(
-            text='%s. [b]%s[/b]' % (self.data['row'], self.data['title']),
+            text='%s. [b]%s[/b]' % (self.row, self.item.title),
             font_size='20dp'
         )
 
         ret.status_label = CustomListItemButton.create_label(
-            text='[b]%s[/b]' % self.data['status'].upper(),
+            text='[b]%s[/b]' % self.item.state.upper(),
             color=(0.0, 0.5, 1.0, 1.0),
             halign='right',
         )
 
         ret.created_label = CustomListItemButton.create_label(
-            text=self.data['created'],
+            text=convert_time(self.item.created),
         )
 
         ret.due_label = CustomListItemButton.create_label(
-            text=self.data['due'],
+            text=convert_time(self.item.due),
             halign='right',
         )
 
@@ -76,7 +85,9 @@ class CustomListItemButton(ListItemButton):
             size_hint_x=None,
             width=30
         )
-        ret.delete_button.data = self.data
+        ret.delete_button.row = self.row
+        ret.delete_button.item = self.item
+        ret.delete_button.parent_list = self.parent_list
         ret.delete_button.bind(on_press=self.on_delete)
 
         ret.add_widget(ret.title_label)
@@ -88,7 +99,9 @@ class CustomListItemButton(ListItemButton):
         return ret
 
     def __init__(self, **kwargs):
-        self.data = kwargs.get('data', {})
+        self.item = kwargs.get('item', None)
+        self.row = int(kwargs.get('row', -1)) + 1
+        self.parent_list = kwargs.get('parent_list', None)
         self.deselected_color = (.7, .7, 1, 1)
         self.halign = 'center'
         self.markup = True
@@ -108,21 +121,26 @@ class CustomListItemButton(ListItemButton):
 
 
 class TasksListView(ListView):
-    @staticmethod
-    def list_item_args_converter(row_index, record):
+    data = None
+
+    def list_item_args_converter(self, row_index, record):
         return {
-            'data': {
-                'title': record['title'],
-                'row': row_index + 1,
-                'status': record['status'],
-                'body': record['body'],
-                'created': str(datetime.datetime.fromtimestamp(record['created'])),
-                'due': str(datetime.datetime.fromtimestamp(record['due'])),
-            },
+            'item': Item(base_url=config.server_address, data=record),
+            'row': row_index,
+            'parent_list': self
         }
 
+    def fetch_data(self):
+        self.data = self.api_manager.list_action()['data'][0]['tasks']
+
+    def update(self):
+        self.fetch_data()
+        self.adapter.data = self.data
+        self.populate()
+
     def __init__(self, **kwargs):
-        self.data = kwargs.get('data', [])
+        self.api_manager = kwargs.get('api_manager', None)
+        self.fetch_data()
 
         super(TasksListView, self).__init__(**kwargs)
         self.adapter = ListAdapter(

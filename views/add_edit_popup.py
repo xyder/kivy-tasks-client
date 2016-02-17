@@ -1,10 +1,12 @@
+import datetime
+
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 import config
+from api_manager import Item
 
 
 class LabeledInput(GridLayout):
@@ -42,13 +44,13 @@ class AddEditPopup(Popup):
     result = {}
     accepted = False
 
-    @property
-    def changed(self):
-        return self.data != self.result
-
     def populate_result(self):
+        self.result = Item(base_url=config.server_address)
         for k in (x['key'] for x in config.form_input_formats):
-            self.result[k] = self.inputs[k].input.text
+            setattr(self.result, k, self.inputs[k].input.text)
+
+        self.result.created = datetime.datetime.strptime(self.result.created, '%Y-%m-%d %H:%M:%S').timestamp()
+        self.result.due = datetime.datetime.strptime(self.result.due, '%Y-%m-%d %H:%M:%S').timestamp()
 
     def on_dismiss(self):
         self.populate_result()
@@ -98,7 +100,7 @@ class AddEditPopup(Popup):
 
             labeled_input = LabeledInput(
                 label_text=i['label'],
-                input_text=formatter(self.data.get(i['key'], '')),
+                input_text=formatter(getattr(self.item, i['key'])),
                 **extra_args
             )
 
@@ -116,7 +118,7 @@ class AddEditPopup(Popup):
 
         self.leave_callback = kwargs.get('leave_callback', lambda popup: None)
 
-        self.data = kwargs.get('data', {})
+        self.item = kwargs.get('item', Item(base_url=config.server_address))
         self.title = kwargs.get('title', 'Add/Edit task:')
 
         self.content.inputs_container = self.build_inputs()
